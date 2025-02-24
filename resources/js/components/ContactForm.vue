@@ -219,7 +219,7 @@ export default {
           // Append files separately
           if (this.form[key]) {
             for (let i = 0; i < this.form[key].length; i++) {
-              formData.append(key, this.form[key][i]);
+              formData.append(`${key}[${i}]`, this.form[key][i]);
             }
           }
         } else if (typeof this.form[key] === 'object') {
@@ -240,6 +240,8 @@ export default {
         });
         console.log('Form submitted successfully:', response.data);
         this.resetForm(); // Reset the form after successful submission
+
+        alert('The form has been submitted.');
       } catch (error) {
         console.error('Error submitting form:', error);
       }
