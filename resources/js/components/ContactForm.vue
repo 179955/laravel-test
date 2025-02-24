@@ -133,6 +133,7 @@
 <script>
 import { required, minLength, maxLength, email, helpers } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import axios from 'axios';
 
 export default {
   setup() {
@@ -141,14 +142,14 @@ export default {
   data() {
     return {
       form: {
-        name: '',
-        email: '',
-        phone: '',
-        message: '',
-        street: '',
-        state: '',
-        zip: '',
-        country: '',
+        name: 'Emily',
+        email: 'emily.carter@example.com',
+        phone: '+442079461234',
+        message: 'I am interested in learning more about your offerings.',
+        street: '456 Maple Avenue',
+        state: 'England',
+        zip: 'W1A 2AA',
+        country: 'United Kingdom',
         images: null,
         files: null,
       },
@@ -208,12 +209,40 @@ export default {
       }
       this.form.files = files;
     },
-    submitForm() {
+    async submitForm() {
       if (this.v$.$invalid) {
         return;
       }
-      // TODO: submit the form
-      this.resetForm();
+      const formData = new FormData();
+      for (const key in this.form) {
+        if (key === 'images' || key === 'files') {
+          // Append files separately
+          if (this.form[key]) {
+            for (let i = 0; i < this.form[key].length; i++) {
+              formData.append(key, this.form[key][i]);
+            }
+          }
+        } else if (typeof this.form[key] === 'object') {
+          // Handle nested objects (like address)
+          for (const nestedKey in this.form[key]) {
+            formData.append(`${key}[${nestedKey}]`, this.form[key][nestedKey]);
+          }
+        } else {
+          formData.append(key, this.form[key]);
+        }
+      }
+
+      try {
+        const response = await axios.post('/api/v1/contact-form', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        console.log('Form submitted successfully:', response.data);
+        this.resetForm(); // Reset the form after successful submission
+      } catch (error) {
+        console.error('Error submitting form:', error);
+      }
     },
     resetForm() {
       this.form = {
